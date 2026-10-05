@@ -684,30 +684,6 @@
     background:linear-gradient(90deg,var(--accent),var(--accent2));
     box-shadow:0 0 12px rgba(44,70,232,.6);transition:width .1s linear}
   @media(prefers-reduced-motion:reduce){.scroll-progress{transition:none}}
-
-  /* ---------- MINIAPPS (software listo para vender) ---------- */
-  .miniapps .apps-grid{margin-top:44px;display:grid;grid-template-columns:1.6fr 1fr;gap:22px;align-items:stretch}
-  @media(max-width:860px){.miniapps .apps-grid{grid-template-columns:1fr}}
-  .app-card{display:grid;grid-template-columns:1fr 1fr;overflow:hidden;border-radius:22px;padding:0}
-  @media(max-width:640px){.app-card{grid-template-columns:1fr}}
-  .app-card .app-shot{background:var(--ink-navy);display:flex;align-items:center;padding:22px}
-  .app-card .app-shot img{width:100%;height:auto;border-radius:10px;box-shadow:0 24px 50px -24px rgba(0,0,0,.7)}
-  .app-card .app-body{padding:28px;display:flex;flex-direction:column}
-  .app-card .app-tag{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent2)}
-  .app-card h3{font-size:26px;margin-top:8px}
-  .app-card p{color:var(--muted);margin-top:8px;font-size:15.5px}
-  .app-card ul{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:7px;font-size:14.5px}
-  .app-card li{display:flex;gap:9px;align-items:flex-start}
-  .app-card li::before{content:"✓";color:var(--ok);font-weight:800}
-  .app-card .app-price{margin-top:auto;padding-top:18px;font-family:var(--display);font-size:28px;font-weight:700}
-  .app-card .app-price small{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--muted);display:block;margin-top:2px}
-  .app-card .app-btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
-  .app-card .app-btns .btn{padding:11px 18px;font-size:14.5px}
-  .app-next{border-radius:22px;padding:28px;display:flex;flex-direction:column;justify-content:center;text-align:center;
-    border:2px dashed rgba(44,70,232,.28);background:rgba(255,255,255,.55)}
-  .app-next h3{font-size:21px;margin-top:10px}
-  .app-next p{color:var(--muted);margin-top:8px;font-size:15px}
-  .app-next .btn{margin:18px auto 0}
 </style>
 <!-- Datos estructurados: negocio -->
 <script type="application/ld+json">
@@ -1053,43 +1029,6 @@
   </div>
 </section>
 
-<!-- MINIAPPS: software listo para comprar -->
-<section id="miniapps" class="miniapps">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow-pill">MiniApps</span>
-      <h2>Software listo para tu negocio.<br><span class="grad">Pago único, sin mensualidades.</span></h2>
-      <p>Aplicaciones sencillas que resuelven un problema concreto desde el primer día. Las descargas, las pruebas gratis y, si te sirven, son tuyas para siempre.</p>
-    </div>
-    <div class="apps-grid">
-      <article class="card glass app-card rv">
-        <div class="app-shot"><img src="miniapps/cajapyme/02-punto-de-venta.webp" width="1440" height="900" loading="lazy" alt="Pantalla de venta de CajaPyme"></div>
-        <div class="app-body">
-          <span class="app-tag">Comercio · Windows</span>
-          <h3>CajaPyme</h3>
-          <p>Control de caja e inventario para tiendas, misceláneas, ferreterías y droguerías. Funciona sin internet.</p>
-          <ul>
-            <li>Venta con lector de código de barras</li>
-            <li>Cierre de caja con conteo de billetes</li>
-            <li>Inventario, kardex y 12 reportes</li>
-          </ul>
-          <div class="app-price">$ 149.900 <small>pago único · 15 días gratis</small></div>
-          <div class="app-btns">
-            <a class="btn btn-primary" href="cajapyme.html">Ver CajaPyme</a>
-            <a class="btn btn-wa" href="https://wa.me/573103237499?text=Hola%20TuDesarrollador,%20quiero%20saber%20m%C3%A1s%20de%20CajaPyme">WhatsApp</a>
-          </div>
-        </div>
-      </article>
-      <div class="app-next rv">
-        <span class="eyebrow-pill" style="margin:0 auto">Próximamente</span>
-        <h3>Más MiniApps en camino</h3>
-        <p>¿Hay una tarea de tu negocio que te gustaría resolver con una app sencilla? Cuéntame: puede ser la próxima.</p>
-        <a class="btn btn-primary" href="https://wa.me/573103237499?text=Hola%20TuDesarrollador,%20me%20gustar%C3%ADa%20una%20MiniApp%20para">Proponer una MiniApp</a>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- PROCESO -->
 <section class="proc">
   <div class="wrap">
@@ -1291,7 +1230,6 @@
         <ul>
           <li><a href="#inicio">Inicio <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></a></li>
           <li><a href="#resultados">Casos reales <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></a></li>
-          <li><a href="#miniapps">MiniApps <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></a></li>
           <li><a href="#contacto">Contacto <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></a></li>
         </ul>
       </div>
