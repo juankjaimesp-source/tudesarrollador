@@ -1,6 +1,6 @@
 // Service worker: guarda la app en caché para que abra sin internet.
 // Al publicar cambios, sube el número de VERSION para que los teléfonos descarguen la nueva versión.
-const VERSION = 'finanzas-v7';
+const VERSION = 'finanzas-v8';
 const CACHE_FUENTES = 'finanzas-fuentes';
 const ARCHIVOS = [
     './',
@@ -9,6 +9,7 @@ const ARCHIVOS = [
     './js/voz.js',
     './js/intereses.js',
     './js/app.js',
+    './js/pagos.js',
     './manifest.webmanifest',
     './icons/icon-192.png',
     './icons/icon-512.png'

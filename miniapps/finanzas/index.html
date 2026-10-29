@@ -136,6 +136,37 @@
             <div id="deudasContent"></div>
         </section>
 
+        <!-- TAB PAGOS DEL MES -->
+        <section id="pagos" class="tab-content">
+            <div class="periodo-nav">
+                <button type="button" class="periodo-flecha" onclick="cambiarPeriodo(-1)" aria-label="Mes anterior">
+                    <svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>
+                </button>
+                <div class="periodo-titulo">
+                    <span>Pagos de</span>
+                    <h2 id="periodoLabel"></h2>
+                </div>
+                <button type="button" class="periodo-flecha" onclick="cambiarPeriodo(1)" aria-label="Mes siguiente">
+                    <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+                </button>
+            </div>
+            <div id="pagosResumen"></div>
+            <div id="pagosContent"></div>
+
+            <details class="filtros-container">
+                <summary class="filtros-title">Mis compromisos <span id="totalCompromisos"></span></summary>
+                <div class="compromisos-lista">
+                    <div id="listaCompromisos"></div>
+                    <button type="button" class="btn-secundario" onclick="abrirEditarCompromiso()">Agregar compromiso</button>
+                </div>
+            </details>
+
+            <details class="filtros-container">
+                <summary class="filtros-title">Resumen del año <span id="anioResumen"></span></summary>
+                <div class="resumen-anio" id="resumenAnio"></div>
+            </details>
+        </section>
+
         <!-- TAB CONCEPTOS -->
         <section id="conceptos" class="tab-content">
             <h2 class="titulo-seccion">Conceptos</h2>
@@ -213,6 +244,9 @@
         <button class="tab" data-tab="deudas">
             <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.5-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2 .7 3.2 2.6 3.5 5.5"/></svg>Saldos
         </button>
+        <button class="tab" data-tab="pagos">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8.5 15.5l2 2 4-4"/></svg>Pagos
+        </button>
         <button class="tab" data-tab="conceptos">
             <svg viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Conceptos
         </button>
@@ -250,6 +284,67 @@
     </div>
 </div>
 
+<!-- Hoja pagar un compromiso mensual -->
+<div class="modal-overlay" id="modalCompromiso">
+    <div class="modal-box">
+        <div class="modal-title" id="modalCompromisoTitulo">Pagar</div>
+        <div class="confirm-frase" id="modalCompromisoRef"></div>
+        <div class="form-group" style="margin-top:14px;">
+            <label for="compromisoPeriodo">Mes que estás pagando</label>
+            <input type="month" id="compromisoPeriodo">
+        </div>
+        <div class="form-group">
+            <label for="compromisoValor">Valor pagado</label>
+            <div class="campo-valor">
+                <span class="campo-valor-signo">$</span>
+                <input type="number" id="compromisoValor" step="any" min="0" inputmode="numeric" placeholder="0">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="compromisoFecha">Fecha del pago</label>
+            <input type="date" id="compromisoFecha">
+        </div>
+        <div class="form-group">
+            <label for="compromisoComentario">Comentario <span class="opcional">opcional</span></label>
+            <textarea id="compromisoComentario" rows="1" placeholder="Nequi, débito automático, referencia…"></textarea>
+        </div>
+        <div class="modal-btns">
+            <button class="btn-modal-cancelar" onclick="cerrarPagoCompromiso()">Cancelar</button>
+            <button class="btn-modal-pagar" onclick="confirmarPagoCompromiso()">Registrar pago</button>
+        </div>
+    </div>
+</div>
+
+<!-- Hoja crear / editar compromiso -->
+<div class="modal-overlay" id="modalEditarCompromiso">
+    <div class="modal-box">
+        <div class="modal-title" id="modalEditarTitulo">Nuevo compromiso</div>
+        <div class="form-group">
+            <label for="editNombre">Nombre</label>
+            <input type="text" id="editNombre" placeholder="CENS Casa, Claro Local, Tarjeta Nu…">
+        </div>
+        <div class="form-group">
+            <label for="editReferencia">Referencia o número de contrato <span class="opcional">opcional</span></label>
+            <input type="text" id="editReferencia" inputmode="numeric" placeholder="303342">
+        </div>
+        <div class="form-fila">
+            <div class="form-group">
+                <label for="editDia">Día límite de pago</label>
+                <input type="number" id="editDia" min="1" max="31" inputmode="numeric" placeholder="15">
+            </div>
+            <div class="form-group">
+                <label for="editValor">Valor habitual <span class="opcional">opc.</span></label>
+                <input type="number" id="editValor" step="any" min="0" inputmode="numeric" placeholder="0">
+            </div>
+        </div>
+        <div class="modal-btns">
+            <button class="btn-modal-cancelar" onclick="cerrarEditarCompromiso()">Cancelar</button>
+            <button class="btn-modal-pagar" onclick="guardarCompromiso()">Guardar</button>
+        </div>
+        <button type="button" class="btn-eliminar-compromiso" id="btnEliminarCompromiso" onclick="eliminarCompromiso()">Eliminar compromiso</button>
+    </div>
+</div>
+
 <!-- Hoja confirmación de registro por voz -->
 <div class="modal-overlay" id="modalVoz">
     <div class="modal-box">
@@ -268,5 +363,6 @@
 <script src="js/voz.js"></script>
 <script src="js/intereses.js"></script>
 <script src="js/app.js"></script>
+<script src="js/pagos.js"></script>
 </body>
 </html>
