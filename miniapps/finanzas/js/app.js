@@ -160,6 +160,7 @@ function cambiarTab(tabName) {
     if (tabName === 'historial') cargarHistorial();
     else if (tabName === 'deudas') cargarDeudas();
     else if (tabName === 'conceptos') cargarListaConceptos();
+    else if (tabName === 'pagos') cargarPagosMes();
 }
 
 // ========================
@@ -813,7 +814,9 @@ function exportarJSON() {
         version: 1,
         fechaExportacion: new Date().toISOString(),
         transacciones: transacciones,
-        conceptos: conceptos
+        conceptos: conceptos,
+        compromisos: compromisos,
+        pagosMes: pagosMes
     };
     const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -836,12 +839,28 @@ function importarJSON(event) {
         try {
             const datos = JSON.parse(e.target.result);
 
+            // Archivo solo con compromisos: se agregan sin tocar el resto
+            if (!datos.transacciones && Array.isArray(datos.compromisos)) {
+                const nuevos = datos.compromisos.filter(c =>
+                    !compromisos.some(x => x.nombre.toLowerCase() === c.nombre.toLowerCase()));
+                event.target.value = '';
+                if (!nuevos.length) { toast('Esos compromisos ya estaban creados.', 'aviso'); return; }
+                if (!confirm(`¿Agregar ${nuevos.length} compromiso(s) a Pagos del mes?\n\n${nuevos.map(c => '• ' + c.nombre).join('\n')}`)) return;
+                compromisos.push(...nuevos);
+                guardarCompromisos();
+                cargarPagosMes();
+                toast(`${nuevos.length} compromisos agregados.`);
+                return;
+            }
+
             if (!datos.transacciones || !datos.conceptos) {
                 toast('El archivo no tiene el formato correcto.', 'error');
                 return;
             }
 
-            if (!confirm(`¿Restaurar datos del respaldo?\n\nFecha del respaldo: ${datos.fechaExportacion ? datos.fechaExportacion.split('T')[0] : 'desconocida'}\nRegistros: ${datos.transacciones.length}\nConceptos: ${datos.conceptos.length}\n\nEsto reemplazará todos los datos actuales.`)) {
+            const conPagos = Array.isArray(datos.compromisos);
+            const lineaPagos = conPagos ? `\nCompromisos: ${datos.compromisos.length}` : '';
+            if (!confirm(`¿Restaurar datos del respaldo?\n\nFecha del respaldo: ${datos.fechaExportacion ? datos.fechaExportacion.split('T')[0] : 'desconocida'}\nRegistros: ${datos.transacciones.length}\nConceptos: ${datos.conceptos.length}${lineaPagos}\n\nEsto reemplazará todos los datos actuales.`)) {
                 event.target.value = '';
                 return;
             }
@@ -850,9 +869,17 @@ function importarJSON(event) {
             conceptos = datos.conceptos;
             guardarDatos();
             guardarConceptos();
+            // Respaldos anteriores no traen pagos del mes: se conservan los actuales
+            if (conPagos) {
+                compromisos = datos.compromisos;
+                pagosMes = datos.pagosMes || [];
+                guardarCompromisos();
+                guardarPagosMes();
+            }
             actualizarNombres();
             cargarConceptosSelect();
             cargarHistorial();
+            cargarPagosMes();
 
             event.target.value = '';
             toast('Datos restaurados correctamente.');
@@ -1122,6 +1149,12 @@ function interpretarFrase(frases) {
     frases = frases.filter(f => f && f.trim());
     if (!frases.length) { toast('Escribe o dicta una frase primero', 'aviso'); return; }
 
+    // "pagué el CENS de la casa…" es un pago mensual, no un préstamo
+    if (intentarPagoPorVoz(frases)) {
+        estadoVoz('');
+        return;
+    }
+
     // La barra de dictado está en todas las pestañas; el formulario vive en Registrar
     cambiarTab('registro');
     const r = VozParser.interpretarMejor(frases, { nombres: nombresUnicos, conceptos: conceptos });
@@ -1234,6 +1267,7 @@ function configurarPWA() {
 // ========================
 document.addEventListener('DOMContentLoaded', function() {
     cargarDatos();
+    cargarDatosPagos();
     document.getElementById('fecha').value = hoyISO();
     cargarConceptosSelect();
 

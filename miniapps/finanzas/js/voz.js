@@ -426,7 +426,58 @@
         return mejor;
     }
 
-    const api = { interpretar, interpretarMejor, normalizar, convertirNumeros, aISO };
+    // ========================
+    // Pago de un compromiso mensual: "pagué el CENS de la casa 126.937 de octubre"
+    // ========================
+    const PALABRAS_GENERICAS = new Set(['tarjeta', 'credito', 'de', 'del', 'la', 'el', 'los', 'las', 'servicio', 'recibo', 'factura', 'cuota']);
+
+    function palabrasClave(nombre) {
+        return normalizar(nombre).replace(/[^a-z0-9 ]/g, ' ').split(/\s+/)
+            .filter(p => p.length > 1 && !/^\d+$/.test(p) && !PALABRAS_GENERICAS.has(p));
+    }
+
+    // Devuelve { compromiso, valor, periodo } o null si la frase no es el pago de un compromiso
+    function interpretarPagoCompromiso(frase, compromisos, hoy) {
+        hoy = hoy || new Date();
+        const texto = normalizar(frase);
+        if (!/\b(pague|pagar|pagamos|cancele|abone)\b/.test(texto) || /\bme (pago|pagaron|abono)\b/.test(texto)) return null;
+
+        // Cuántas veces aparece cada palabra clave entre todos los compromisos
+        const frecuencia = {};
+        compromisos.forEach(c => palabrasClave(c.nombre).forEach(p => { frecuencia[p] = (frecuencia[p] || 0) + 1; }));
+
+        let mejor = null;
+        compromisos.forEach(c => {
+            const claves = palabrasClave(c.nombre);
+            if (!claves.length) return;
+            const encontradas = claves.filter(p => contienePalabras(texto, p));
+            const completo = encontradas.length === claves.length;
+            // Coincidencia parcial solo si alguna palabra es exclusiva de ese compromiso ("nu" → Nu Bank)
+            const distintiva = encontradas.some(p => frecuencia[p] === 1);
+            if (!completo && !distintiva) return;
+            const puntaje = encontradas.length + (completo ? 10 : 0);
+            if (!mejor || puntaje > mejor.puntaje) mejor = { c, puntaje, empate: false };
+            else if (puntaje === mejor.puntaje) mejor.empate = true;
+        });
+        if (!mejor || mejor.empate) return null;
+
+        // Mes al que corresponde: "de octubre" (si es un mes futuro, es del año pasado)
+        let periodo = null;
+        const mMes = texto.match(new RegExp(`\\b(${Object.keys(MESES).join('|')})\\b`));
+        if (mMes) {
+            const mes = MESES[mMes[1]];
+            let anio = hoy.getFullYear();
+            if (mes > hoy.getMonth() + 1) anio--;
+            periodo = `${anio}-${String(mes).padStart(2, '0')}`;
+        }
+
+        const numeros = (convertirNumeros(texto).match(/#\d+/g) || []).map(n => parseInt(n.slice(1), 10));
+        const valor = numeros.length ? Math.max(...numeros) : null;
+
+        return { compromiso: mejor.c, valor, periodo };
+    }
+
+    const api = { interpretar, interpretarMejor, interpretarPagoCompromiso, normalizar, convertirNumeros, aISO };
     global.VozParser = api;
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
 
