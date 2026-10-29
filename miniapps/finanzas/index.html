@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Finanzas">
+    <meta name="theme-color" content="#13201C">
+    <meta name="description" content="Registro de préstamos, gastos y pagos por persona, con dictado por voz.">
+    <title>Control Financiero - Cruz Roja Colombiana</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Onest:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="app">
+
+    <header class="cabecera">
+        <div class="marca"><span class="marca-logo">$</span>Finanzas</div>
+        <button type="button" class="cabecera-total" onclick="cambiarTab('deudas')" aria-label="Ver saldos">
+            <span>Te deben</span><b id="resumenTotal">$0</b>
+        </button>
+    </header>
+
+    <main class="content">
+
+        <!-- TAB REGISTRO -->
+        <section id="registro" class="tab-content active">
+            <h2 class="titulo-seccion">Nuevo registro</h2>
+            <form id="registroForm">
+                <div class="form-group">
+                    <label>Persona</label>
+                    <div class="dropdown-container">
+                        <div class="dropdown-button" id="nombreDropdownBtn" tabindex="0" role="button">
+                            <span class="dropdown-text placeholder">Elige o agrega una persona</span>
+                            <span class="dropdown-arrow">
+                                <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                            </span>
+                        </div>
+                        <div class="dropdown-menu" id="nombreDropdownMenu"></div>
+                    </div>
+                    <input type="hidden" id="nombreSelected" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="valor">Valor</label>
+                    <div class="campo-valor">
+                        <span class="campo-valor-signo">$</span>
+                        <input type="number" id="valor" step="any" min="0" inputmode="numeric" required placeholder="0">
+                    </div>
+                </div>
+
+                <div class="form-fila">
+                    <div class="form-group">
+                        <label for="fecha">Fecha</label>
+                        <input type="date" id="fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="conceptoSelect">Concepto</label>
+                        <select id="conceptoSelect" required>
+                            <option value="">Elegir</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="tipoBadgeContainer" class="tipo-aviso" style="display:none;">
+                    <span id="tipoBadge" class="badge"></span>
+                </div>
+
+                <!-- Solo visible con el concepto Préstamo -->
+                <div class="interes-box" id="interesBox" hidden>
+                    <label class="interes-toggle">
+                        <input type="checkbox" id="interesActivo">
+                        <span class="interes-switch" aria-hidden="true"></span>
+                        Cobrar intereses
+                    </label>
+                    <div class="interes-campos" id="interesCampos" hidden>
+                        <div class="campo-tasa">
+                            <input type="number" id="interesTasa" step="0.1" min="0" inputmode="decimal" placeholder="5" aria-label="Interés mensual en porcentaje">
+                            <span>% mensual</span>
+                        </div>
+                        <div class="interes-ayuda" id="interesAyuda"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="comentario">Comentario <span class="opcional">opcional</span></label>
+                    <textarea id="comentario" rows="2" placeholder="Referencia, nota, medio de pago…"></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary">Registrar</button>
+            </form>
+        </section>
+
+        <!-- TAB HISTORIAL -->
+        <section id="historial" class="tab-content">
+            <h2 class="titulo-seccion">Historial</h2>
+            <details class="filtros-container">
+                <summary class="filtros-title">Filtrar registros</summary>
+                <div class="filtros-grid">
+                    <select id="filtroPersona">
+                        <option value="">Todas las personas</option>
+                    </select>
+                    <select id="filtroConcepto">
+                        <option value="">Todos los conceptos</option>
+                    </select>
+                    <select id="filtroTipo">
+                        <option value="">Todos los tipos</option>
+                        <option value="gasto">Solo gastos</option>
+                        <option value="pago">Solo pagos</option>
+                    </select>
+                    <input type="month" id="filtroMes" aria-label="Mes">
+                </div>
+                <div class="filtros-btns">
+                    <button class="btn-limpiar" onclick="limpiarFiltros()">Limpiar</button>
+                    <button class="btn-filtrar" onclick="aplicarFiltros()">Aplicar</button>
+                </div>
+            </details>
+            <div id="historialContent"></div>
+        </section>
+
+        <!-- TAB SALDOS -->
+        <section id="deudas" class="tab-content">
+            <div class="resumen">
+                <span class="resumen-label">Te deben en total</span>
+                <span class="resumen-total" id="resumenTotalSaldos">$0</span>
+                <div class="resumen-barra" id="resumenBarra"></div>
+                <div class="resumen-leyenda" id="resumenLeyenda"></div>
+            </div>
+            <div id="deudasContent"></div>
+        </section>
+
+        <!-- TAB CONCEPTOS -->
+        <section id="conceptos" class="tab-content">
+            <h2 class="titulo-seccion">Conceptos</h2>
+            <div class="tarjeta">
+                <div class="form-group">
+                    <label for="nuevoConceptoNombre">Nombre del concepto</label>
+                    <input type="text" id="nuevoConceptoNombre" placeholder="Almuerzo, transporte, cuota…">
+                </div>
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <div class="tipo-selector">
+                        <div class="tipo-btn" id="btnGasto" onclick="seleccionarTipo('gasto')">
+                            <strong>Gasto</strong><small>Queda debiendo</small>
+                        </div>
+                        <div class="tipo-btn" id="btnPago" onclick="seleccionarTipo('pago')">
+                            <strong>Pago</strong><small>Abona a su deuda</small>
+                        </div>
+                    </div>
+                    <input type="hidden" id="nuevoConceptoTipo">
+                </div>
+                <button class="btn-primary" onclick="agregarConcepto()">Guardar concepto</button>
+            </div>
+
+            <div id="listaConceptos"></div>
+        </section>
+
+        <!-- TAB AJUSTES -->
+        <section id="ajustes" class="tab-content">
+            <h2 class="titulo-seccion">Ajustes</h2>
+
+            <div class="tarjeta">
+                <h3 class="tarjeta-titulo">Copia de seguridad</h3>
+                <p class="tarjeta-texto">Los datos viven solo en este teléfono. Descarga una copia y guárdala en Drive o envíatela por WhatsApp.</p>
+                <button class="btn-primary" onclick="exportarJSON()">Descargar copia</button>
+            </div>
+
+            <div class="tarjeta">
+                <h3 class="tarjeta-titulo">Restaurar copia</h3>
+                <p class="tarjeta-texto">Carga un archivo <code>.json</code> exportado antes. <strong class="texto-debe">Reemplaza todos los datos actuales.</strong></p>
+                <label for="importarArchivo" class="btn-secundario">Elegir archivo .json</label>
+                <input type="file" id="importarArchivo" accept=".json" hidden onchange="importarJSON(event)">
+            </div>
+
+            <div class="tarjeta">
+                <h3 class="tarjeta-titulo">Instalar en el celular</h3>
+                <p class="tarjeta-texto" id="textoInstalar">En Chrome: menú ⋮ → <strong>Instalar app</strong>. Funciona sin internet; el dictado por voz sí necesita conexión.</p>
+                <button type="button" class="btn-primary btn-instalar" id="btnInstalar">Instalar app</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Barra de dictado -->
+    <div class="dock" id="dock">
+        <div class="dock-estado" id="estadoVoz"></div>
+        <div class="dock-barra">
+            <textarea id="fraseRapida" rows="1" placeholder="Ej: le presté 50 mil a Juan" aria-label="Frase a registrar"></textarea>
+            <button type="button" class="dock-enviar" id="btnInterpretar" aria-label="Interpretar frase">
+                <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+            <button type="button" class="btn-mic" id="btnMic" aria-label="Dictar por voz">
+                <svg class="icono-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+                <span class="ondas" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            </button>
+        </div>
+    </div>
+
+    <nav class="tabs">
+        <button class="tab active" data-tab="registro">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Registrar
+        </button>
+        <button class="tab" data-tab="historial">
+            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>Historial
+        </button>
+        <button class="tab" data-tab="deudas">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.5-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2 .7 3.2 2.6 3.5 5.5"/></svg>Saldos
+        </button>
+        <button class="tab" data-tab="conceptos">
+            <svg viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Conceptos
+        </button>
+        <button class="tab" data-tab="ajustes">
+            <svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Ajustes
+        </button>
+    </nav>
+</div>
+
+<!-- Hoja pago de item específico -->
+<div class="modal-overlay" id="modalPago">
+    <div class="modal-box">
+        <div class="modal-title">Registrar pago</div>
+        <div class="modal-info" id="modalPagoInfo"></div>
+        <div class="form-group">
+            <label for="modalValorPago">Valor a pagar</label>
+            <div class="campo-valor">
+                <span class="campo-valor-signo">$</span>
+                <input type="number" id="modalValorPago" step="any" min="1" inputmode="numeric" placeholder="0">
+            </div>
+            <div class="modal-saldo-restante" id="modalSaldoRestante"></div>
+        </div>
+        <div class="form-group">
+            <label for="modalFechaPago">Fecha del pago</label>
+            <input type="date" id="modalFechaPago">
+        </div>
+        <div class="form-group">
+            <label for="modalComentarioPago">Comentario <span class="opcional">opcional</span></label>
+            <textarea id="modalComentarioPago" rows="2" placeholder="Abono, pago total, referencia…"></textarea>
+        </div>
+        <div class="modal-btns">
+            <button class="btn-modal-cancelar" onclick="cerrarModalPago()">Cancelar</button>
+            <button class="btn-modal-pagar" onclick="confirmarPagoItem()">Confirmar pago</button>
+        </div>
+    </div>
+</div>
+
+<!-- Hoja confirmación de registro por voz -->
+<div class="modal-overlay" id="modalVoz">
+    <div class="modal-box">
+        <div class="modal-title">¿Registrar esto?</div>
+        <div class="confirm-frase" id="confirmFrase"></div>
+        <ul class="confirm-lista" id="confirmLista"></ul>
+        <div class="modal-btns">
+            <button class="btn-modal-cancelar" id="btnVozEditar">Editar</button>
+            <button class="btn-modal-pagar" id="btnVozRegistrar">Registrar</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/voz.js"></script>
+<script src="js/intereses.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
