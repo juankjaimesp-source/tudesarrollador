@@ -1043,3 +1043,176 @@ select {
     font-weight: 600;
     cursor: pointer;
 }
+
+/* ========================
+   Pagos del mes
+   ======================== */
+.periodo-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.periodo-titulo { text-align: center; }
+.periodo-titulo span {
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--tinta-suave);
+}
+.periodo-titulo h2 {
+    font-family: var(--f-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+.periodo-flecha {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid var(--linea);
+    border-radius: 12px;
+    background: var(--superficie);
+    cursor: pointer;
+}
+.periodo-flecha svg { width: 18px; height: 18px; }
+
+.pagos-avance {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--tinta-suave);
+    font-variant-numeric: tabular-nums;
+}
+.pagos-avance b { color: var(--tinta); }
+.pagos-barra {
+    height: 6px;
+    margin: 6px 0 16px;
+    border-radius: 99px;
+    background: var(--linea);
+    overflow: hidden;
+}
+.pagos-barra span { display: block; height: 100%; background: var(--abono); border-radius: 99px; transition: width 0.3s; }
+
+.compromiso {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--superficie);
+    padding: 12px 12px 12px 14px;
+    border-radius: var(--radio);
+    margin-bottom: 8px;
+    box-shadow: var(--sombra);
+}
+
+.compromiso-marca {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--linea);
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.estado-pagado .compromiso-marca { border-color: var(--abono); background: var(--abono); color: white; }
+.estado-vencido .compromiso-marca { border-color: var(--debe); }
+.estado-pronto .compromiso-marca { border-color: var(--resaltador); }
+
+.compromiso-info { flex: 1; min-width: 0; }
+.compromiso-nombre { font-weight: 600; }
+.compromiso-detalle {
+    font-size: 0.76rem;
+    color: var(--tinta-suave);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.estado-vencido .compromiso-detalle { color: var(--debe); font-weight: 600; }
+.estado-pronto .compromiso-detalle { color: #8A5A00; font-weight: 600; }
+.estado-pagado .compromiso-nombre { color: var(--tinta-suave); }
+
+.btn-pagar-compromiso {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 84px;
+    padding: 7px 12px;
+    border: none;
+    border-radius: 12px;
+    background: var(--tinta);
+    color: var(--papel);
+    font-size: 0.86rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-pagar-compromiso small { font-size: 0.68rem; font-weight: 400; opacity: 0.7; font-variant-numeric: tabular-nums; }
+
+.compromiso-pagado {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    border: none;
+    background: none;
+    font-family: var(--f-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--abono);
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+}
+.compromiso-pagado small { font-family: var(--f-texto); font-size: 0.68rem; font-weight: 400; color: var(--tinta-suave); }
+
+#pagos .filtros-container { margin-top: 18px; margin-bottom: 0; }
+.compromisos-lista { padding: 0 12px 12px; }
+
+.compromiso-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px 4px;
+    border: none;
+    border-top: 1px solid var(--papel);
+    background: none;
+    text-align: left;
+    cursor: pointer;
+}
+.compromiso-fila b { display: block; font-weight: 600; font-size: 0.9rem; }
+.compromiso-fila small { font-size: 0.74rem; color: var(--tinta-suave); }
+.compromiso-fila-editar { font-size: 0.78rem; font-weight: 600; color: var(--tinta-suave); }
+.compromisos-lista .btn-secundario { margin-top: 10px; height: 44px; }
+
+.btn-eliminar-compromiso {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    border: none;
+    background: none;
+    color: var(--debe);
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-eliminar-compromiso[hidden] { display: none; }
+
+.resumen-anio { padding: 0 8px 12px; overflow-x: auto; }
+.tabla-anio { border-collapse: collapse; font-size: 0.72rem; width: 100%; }
+.tabla-anio th, .tabla-anio td { padding: 5px 3px; text-align: center; border-bottom: 1px solid var(--papel); }
+.tabla-anio tbody th, .tabla-anio tfoot th {
+    text-align: left;
+    font-weight: 500;
+    white-space: nowrap;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 6px;
+}
+.tabla-anio thead th { font-family: var(--f-mono); color: var(--tinta-suave); font-weight: 500; }
+.tabla-anio td { color: #B8C2BE; }
+.tabla-anio .anio-pagado { color: var(--abono); font-weight: 700; }
+.tabla-anio .anio-actual { background: var(--resaltador-suave); }
+.tabla-anio tfoot td { color: var(--tinta-suave); font-size: 0.6rem; font-variant-numeric: tabular-nums; }
