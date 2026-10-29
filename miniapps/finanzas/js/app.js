@@ -414,6 +414,7 @@ function cargarHistorial(filtradas) {
         const interesHTML = p ? `
             <div class="record-interes">
                 <span class="badge badge-interes">${p.tasa}% mensual</span>
+                ${p.interesDesde > p.fecha ? `Interés desde ${escapeHtml(etiquetaFecha(p.interesDesde).toLowerCase())} · ` : ''}
                 ${p.capital > 0
                     ? `Capital ${formatearMoneda(p.capital)} · intereses por pagar ${formatearMoneda(p.interesPendiente)}`
                     : `Pagado · intereses cobrados ${formatearMoneda(p.interesPagado)}`}

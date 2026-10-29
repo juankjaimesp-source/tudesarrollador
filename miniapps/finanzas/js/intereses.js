@@ -69,6 +69,8 @@
 
                 if (t.tipo !== 'pago') {
                     const tasa = t.tasaMensual > 0 && fecha ? t.tasaMensual : 0;
+                    // interesDesde: intereses ya pagados por fuera hasta esa fecha
+                    const inicioInteres = t.interesDesde && t.interesDesde > fecha ? t.interesDesde : fecha;
                     const deuda = {
                         id: t.id,
                         fecha,
@@ -78,7 +80,8 @@
                         interesPendiente: 0,
                         interesCausado: 0,
                         interesPagado: 0,
-                        ultimaCausacion: fecha
+                        interesDesde: inicioInteres,
+                        ultimaCausacion: inicioInteres
                     };
                     deudas.push(deuda);
                     // Saldo a favor previo se cruza contra la nueva deuda
