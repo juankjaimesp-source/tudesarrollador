@@ -1216,3 +1216,106 @@ select {
 .tabla-anio .anio-pagado { color: var(--abono); font-weight: 700; }
 .tabla-anio .anio-actual { background: var(--resaltador-suave); }
 .tabla-anio tfoot td { color: var(--tinta-suave); font-size: 0.6rem; font-variant-numeric: tabular-nums; }
+
+/* ========================
+   Chips (cuentas / categorías)
+   ======================== */
+.chips {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 2px 2px 6px;
+    margin: 0 -2px 10px;
+    scrollbar-width: none;
+    border-radius: 12px;
+}
+.chips::-webkit-scrollbar { display: none; }
+.chips-ajustes { flex-wrap: wrap; overflow: visible; margin-bottom: 0; }
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    height: 36px;
+    padding: 0 14px;
+    border: 1.5px solid var(--linea);
+    border-radius: 99px;
+    background: var(--superficie);
+    color: var(--tinta);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.chip.activo { background: var(--tinta); border-color: var(--tinta); color: var(--papel); }
+.chip-nuevo { border-style: dashed; color: var(--tinta-suave); }
+.chip-fijo { cursor: default; padding-right: 8px; }
+.chip-fijo button {
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    background: var(--papel);
+    color: var(--tinta-suave);
+    font-size: 0.95rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.chips.campo-auto { outline: 2px solid var(--resaltador); outline-offset: 2px; background: var(--resaltador-suave); }
+.chips.campo-falta { outline: 2px dashed var(--debe); outline-offset: 2px; }
+
+/* ========================
+   Mis gastos
+   ======================== */
+.form-gasto label { margin-top: 2px; }
+.gasto-fila { display: grid; grid-template-columns: 1fr 140px; gap: 8px; margin-bottom: 12px; }
+.gasto-fila-final { grid-template-columns: 150px 1fr; margin: 4px 0 0; }
+.gasto-fila-final .btn-primary { height: 50px; }
+.campo-valor-sm input { height: 50px; font-size: 1.2rem; padding-left: 30px; }
+.campo-valor-sm .campo-valor-signo { left: 12px; font-size: 1rem; }
+
+.resumen-gastos .cat-fila {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 10px;
+    margin-top: 12px;
+    font-size: 0.85rem;
+}
+.resumen-gastos .cat-fila b { font-variant-numeric: tabular-nums; font-weight: 600; }
+.resumen-gastos .cat-fila i {
+    grid-column: 1 / -1;
+    display: block;
+    height: 5px;
+    border-radius: 99px;
+    background: rgba(242,244,241,0.35);
+}
+.resumen-gastos .cat-hormiga i { background: var(--resaltador); }
+
+.cuenta-fila {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+    border-top: 1px solid var(--papel);
+    font-size: 0.9rem;
+}
+.cuenta-fila b { margin-left: 8px; font-variant-numeric: tabular-nums; }
+
+.gasto-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--superficie);
+    padding: 10px 10px 10px 14px;
+    border-radius: var(--radio);
+    margin-bottom: 6px;
+    box-shadow: var(--sombra);
+}
+.gasto-info { flex: 1; min-width: 0; }
+.gasto-desc { font-weight: 600; }
+.gasto-meta { font-size: 0.76rem; color: var(--tinta-suave); }
+.gasto-valor { font-family: var(--f-display); font-weight: 700; font-variant-numeric: tabular-nums; }
+.gasto-item .btn-delete { padding: 0 8px; height: 30px; }
+
+#ajustes #listaConceptos .concepto-item { box-shadow: none; background: var(--papel); }
