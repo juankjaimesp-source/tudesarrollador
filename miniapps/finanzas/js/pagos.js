@@ -140,7 +140,7 @@ function cargarPagosMes() {
                 </button>`;
         }
         const detalle = estado === 'pagado'
-            ? `${ref}${pagos[pagos.length - 1].comentario ? escapeHtml(pagos[pagos.length - 1].comentario) : 'Al día'}`
+            ? `${ref}${[nombreCuenta(pagos[pagos.length - 1].cuentaId), pagos[pagos.length - 1].comentario].filter(Boolean).map(escapeHtml).join(' · ') || 'Al día'}`
             : `${ref}${textoEstado[estado](limite)}`;
         return `
             <div class="compromiso estado-${estado}">
@@ -172,6 +172,8 @@ function abrirPagoCompromiso(id, sugerencia = {}) {
     document.getElementById('compromisoValor').value = sugerencia.valor || ultimoValorPagado(id) || c.valorReferencia || '';
     document.getElementById('compromisoFecha').value = hoyISO();
     document.getElementById('compromisoComentario').value = '';
+    renderChips('cuentaCompromiso', 'cuenta', sugerencia.cuentaId || ultimaCuenta());
+    if (sugerencia.cuentaId) marcar(document.getElementById('cuentaCompromiso'), true);
     document.getElementById('modalCompromiso').classList.add('show');
     if (sugerencia.valor) marcar(document.getElementById('compromisoValor'), true);
 }
@@ -179,6 +181,7 @@ function abrirPagoCompromiso(id, sugerencia = {}) {
 function cerrarPagoCompromiso() {
     document.getElementById('modalCompromiso').classList.remove('show');
     limpiarMarca(document.getElementById('compromisoValor'));
+    limpiarMarca(document.getElementById('cuentaCompromiso'));
     pagoCompromisoId = null;
 }
 
@@ -197,7 +200,9 @@ function confirmarPagoCompromiso() {
     const yaPagado = pagosMes.some(p => p.compromisoId === c.id && p.periodo === periodo);
     if (yaPagado && !confirm(`${c.nombre} ya tiene un pago en ${nombrePeriodo(periodo)}. ¿Registrar otro pago para ese mes?`)) return;
 
-    pagosMes.push({ id: Date.now(), compromisoId: c.id, periodo, valor, fechaPago, comentario });
+    const cuentaId = valorChips('cuentaCompromiso');
+    pagosMes.push({ id: Date.now(), compromisoId: c.id, periodo, valor, fechaPago, comentario, cuentaId });
+    if (cuentaId) localStorage.setItem('ultimaCuenta', cuentaId);
     guardarPagosMes();
     cerrarPagoCompromiso();
     document.getElementById('fraseRapida').value = '';
@@ -349,7 +354,8 @@ function intentarPagoPorVoz(frases) {
             periodoVista = r.periodo;
             cargarPagosMes();
         }
-        abrirPagoCompromiso(r.compromiso.id, { valor: r.valor, periodo: r.periodo });
+        const cuenta = VozParser.buscarCuenta(frase, cuentas);
+        abrirPagoCompromiso(r.compromiso.id, { valor: r.valor, periodo: r.periodo, cuentaId: cuenta && cuenta.id });
         return true;
     }
     return false;

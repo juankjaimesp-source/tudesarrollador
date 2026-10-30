@@ -427,6 +427,89 @@
     }
 
     // ========================
+    // Cuenta de donde sale o a donde entra la plata: "con Nequi", "por Daviplata", "de NuBank"
+    // ========================
+    function mencionaCuenta(texto, cuenta) {
+        const n = normalizar(cuenta.nombre);
+        if (contienePalabras(texto, n)) return true;
+        // "NuBank" dictado como "nu bank"
+        const tokens = texto.split(' ');
+        return !n.includes(' ') && tokens.some((t, i) => tokens[i + 1] && t + tokens[i + 1] === n);
+    }
+
+    function buscarCuenta(frase, cuentas) {
+        const texto = normalizar(frase);
+        const mencionadas = cuentas.filter(c => mencionaCuenta(texto, c));
+        if (mencionadas.length <= 1) return mencionadas[0] || null;
+        // Varias (ej. "pagué la tarjeta Falabella con Nequi"): preferir la que va tras con/por/desde
+        return mencionadas.find(c => {
+            const n = escaparRegex(normalizar(c.nombre));
+            return new RegExp(`\\b(con|por|desde|en|de la cuenta|cuenta) (la |el |mi )?${n}`).test(texto);
+        }) || mencionadas[0];
+    }
+
+    // ========================
+    // Gasto personal: "gasté 5 mil en un tinto con Nequi", "me tomé un café de 4 mil"
+    // ========================
+    const NO_DESCRIPCION = new Set(['un', 'una', 'unos', 'unas', 'el', 'la', 'los', 'las', 'de', 'del', 'en', 'con', 'por',
+        'para', 'mi', 'mis', 'pesos', 'plata', 'hoy', 'ayer', 'que', 'y', 'cuenta', 'efectivo']);
+
+    // Devuelve { descripcion, valor, categoriaId, cuentaId, fecha } o null si no es un gasto personal
+    function interpretarGasto(frase, opciones) {
+        const { categorias = [], cuentas = [], nombres = [] } = opciones;
+        const hoy = opciones.hoy || new Date();
+        const textoBase = normalizar(frase);
+        const disparador = textoBase.match(/\b(me gaste|gaste|me compre|compre|me tome|me comi)\b/);
+        // "le compré…" o una persona conocida = es un préstamo, no un gasto propio
+        if (!disparador || /\b(le|les)\b/.test(textoBase) || buscarPersona(textoBase, nombres)) return null;
+
+        let texto = convertirNumeros(textoBase);
+        const resFecha = extraerFecha(texto, hoy);
+        texto = resFecha.texto;
+
+        const numeros = (texto.match(/#\d+/g) || []).map(n => parseInt(n.slice(1), 10));
+        const valor = numeros.length ? Math.max(...numeros) : null;
+        const cuenta = buscarCuenta(texto, cuentas);
+
+        let categoria = null;
+        categorias.forEach(c => {
+            if (contienePalabras(texto, normalizar(c.nombre)) && (!categoria || c.nombre.length > categoria.nombre.length)) categoria = c;
+        });
+        // Sin categoría dicha, lo pequeño es gasto hormiga
+        if (!categoria && valor && valor <= 20000) {
+            categoria = categorias.find(c => normalizar(c.nombre).includes('hormiga')) || null;
+        }
+
+        // Descripción: lo que va tras "en un…/un…" o tras el verbo
+        const palabrasCuenta = new Set(cuentas.flatMap(c => normalizar(c.nombre).split(' ')));
+        const sirve = p => p && !p.startsWith('#') && !NO_DESCRIPCION.has(p) && !palabrasCuenta.has(p) && /^[a-z]{2,}$/.test(p);
+        let descripcion = null;
+        const resto = texto.slice(texto.indexOf(disparador[0]) + disparador[0].length).trim().split(' ');
+        for (let i = 0; i < resto.length && !descripcion; i++) {
+            if (sirve(resto[i])) descripcion = sirve(resto[i + 1]) ? `${resto[i]} ${resto[i + 1]}` : resto[i];
+        }
+        if (descripcion) {
+            // Recuperar tildes del texto original
+            const originales = {};
+            frase.split(/\s+/).forEach(p => {
+                const limpia = p.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g, '');
+                if (limpia) originales[normalizar(limpia)] = limpia.toLowerCase();
+            });
+            descripcion = descripcion.split(' ').map(p => originales[p] || p).join(' ');
+            descripcion = descripcion.charAt(0).toUpperCase() + descripcion.slice(1);
+        }
+
+        return {
+            frase: frase.trim(),
+            descripcion: descripcion || (categoria ? categoria.nombre : 'Gasto'),
+            valor,
+            categoriaId: categoria ? categoria.id : null,
+            cuentaId: cuenta ? cuenta.id : null,
+            fecha: resFecha.fecha || aISO(hoy)
+        };
+    }
+
+    // ========================
     // Pago de un compromiso mensual: "pagué el CENS de la casa 126.937 de octubre"
     // ========================
     const PALABRAS_GENERICAS = new Set(['tarjeta', 'credito', 'de', 'del', 'la', 'el', 'los', 'las', 'servicio', 'recibo', 'factura', 'cuota']);
@@ -477,7 +560,7 @@
         return { compromiso: mejor.c, valor, periodo };
     }
 
-    const api = { interpretar, interpretarMejor, interpretarPagoCompromiso, normalizar, convertirNumeros, aISO };
+    const api = { interpretar, interpretarMejor, interpretarPagoCompromiso, interpretarGasto, buscarCuenta, normalizar, convertirNumeros, aISO };
     global.VozParser = api;
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
 

@@ -159,7 +159,8 @@ function cambiarTab(tabName) {
 
     if (tabName === 'historial') cargarHistorial();
     else if (tabName === 'deudas') cargarDeudas();
-    else if (tabName === 'conceptos') cargarListaConceptos();
+    else if (tabName === 'ajustes') { cargarListaConceptos(); cargarAjustesListas(); }
+    else if (tabName === 'gastos') cargarGastos();
     else if (tabName === 'pagos') cargarPagosMes();
 }
 
@@ -262,6 +263,8 @@ function actualizarBadgeTipo() {
     } else {
         badgeContainer.style.display = 'none';
     }
+    const etiqueta = c ? (c.tipo === 'pago' ? 'Entra a' : 'Sale de') : 'Cuenta';
+    document.getElementById('cuentaRegistroLabel').innerHTML = `${etiqueta} <span class="opcional">opcional</span>`;
     actualizarCajaInteres();
 }
 
@@ -340,12 +343,15 @@ function procesarFormulario(event) {
         timestamp: new Date().toISOString()
     };
     if (tasaMensual) nuevaTransaccion.tasaMensual = tasaMensual;
+    const cuentaId = valorChips('cuentaRegistro');
+    if (cuentaId) nuevaTransaccion.cuentaId = cuentaId;
 
     transacciones.push(nuevaTransaccion);
     guardarDatos();
     actualizarNombres();
 
     reiniciarCajaInteres();
+    renderChips('cuentaRegistro', 'cuenta', null);
     establecerNombre('');
     document.getElementById('valor').value = '';
     document.getElementById('conceptoSelect').value = '';
@@ -428,7 +434,7 @@ function cargarHistorial(filtradas) {
                         <div class="record-name">${escapeHtml(t.nombre)}</div>
                         <div class="record-amount">${tipo === 'pago' ? '−' : '+'}${formatearMoneda(t.valor)}</div>
                     </div>
-                    <div class="record-details">${escapeHtml(t.conceptoNombre || t.concepto || 'Sin concepto')} · ${tipo === 'pago' ? 'abono' : 'te debe'}</div>
+                    <div class="record-details">${escapeHtml(t.conceptoNombre || t.concepto || 'Sin concepto')} · ${tipo === 'pago' ? 'abono' : 'te debe'}${t.cuentaId ? ' · ' + escapeHtml(nombreCuenta(t.cuentaId)) : ''}</div>
                     ${interesHTML}
                     ${comentarioHTML}
                     <div class="record-actions">
@@ -816,7 +822,10 @@ function exportarJSON() {
         transacciones: transacciones,
         conceptos: conceptos,
         compromisos: compromisos,
-        pagosMes: pagosMes
+        pagosMes: pagosMes,
+        cuentas: cuentas,
+        categorias: categoriasGasto,
+        gastos: gastos
     };
     const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -876,6 +885,9 @@ function importarJSON(event) {
                 guardarCompromisos();
                 guardarPagosMes();
             }
+            if (Array.isArray(datos.cuentas)) { cuentas = datos.cuentas; guardarCuentas(); }
+            if (Array.isArray(datos.categorias)) { categoriasGasto = datos.categorias; guardarCategorias(); }
+            if (Array.isArray(datos.gastos)) { gastos = datos.gastos; guardarGastos(); }
             actualizarNombres();
             cargarConceptosSelect();
             cargarHistorial();
@@ -932,6 +944,7 @@ function mostrarModalPago(titulo, infoHTML, saldo, permiteExceso) {
     document.getElementById('modalFechaPago').value = hoyISO();
     document.getElementById('modalComentarioPago').value = '';
     document.getElementById('modalSaldoRestante').textContent = '';
+    renderChips('cuentaAbono', 'cuenta', null);
     document.getElementById('modalPago').classList.add('show');
 }
 
@@ -1022,6 +1035,8 @@ function confirmarPagoItem() {
         timestamp: new Date().toISOString()
     };
     if (t) nuevoPago.pagoDeItemId = pagoItemId;
+    const cuentaAbono = valorChips('cuentaAbono');
+    if (cuentaAbono) nuevoPago.cuentaId = cuentaAbono;
 
     transacciones.push(nuevoPago);
     guardarDatos();
@@ -1154,6 +1169,8 @@ function interpretarFrase(frases) {
         estadoVoz('');
         return;
     }
+    // "gasté 5 mil en un tinto con Nequi" es un gasto propio
+    if (intentarGastoPorVoz(frases)) return;
 
     // La barra de dictado está en todas las pestañas; el formulario vive en Registrar
     cambiarTab('registro');
@@ -1194,6 +1211,9 @@ function aplicarAlFormulario(r) {
     document.getElementById('interesTasa').value = r.tasaMensual || '';
     if (r.tasaMensual) marcar(document.getElementById('interesTasa'), true);
     actualizarBadgeTipo();
+    const cuenta = VozParser.buscarCuenta(r.frase, cuentas);
+    renderChips('cuentaRegistro', 'cuenta', cuenta ? cuenta.id : null);
+    if (cuenta) marcar(document.getElementById('cuentaRegistro'), true);
 
     if (r.comentario) {
         document.getElementById('comentario').value = r.comentario;
@@ -1213,6 +1233,8 @@ function mostrarConfirmacionVoz(r) {
     if (r.tasaMensual && esPrestamo(conceptos.find(c => c.id === r.conceptoId))) {
         filas.push(['Interés', `${r.tasaMensual}% mensual (${formatearMoneda(r.valor * r.tasaMensual / 100)} al mes)`]);
     }
+    const cuentaVoz = valorChips('cuentaRegistro');
+    if (cuentaVoz) filas.push([r.tipo === 'pago' ? 'Entra a' : 'Sale de', nombreCuenta(cuentaVoz)]);
     if (r.comentario) filas.push(['Comentario', r.comentario]);
 
     document.getElementById('confirmFrase').textContent = `"${r.frase}"`;
@@ -1268,6 +1290,8 @@ function configurarPWA() {
 document.addEventListener('DOMContentLoaded', function() {
     cargarDatos();
     cargarDatosPagos();
+    cargarDatosGastos();
+    renderChips('cuentaRegistro', 'cuenta', null);
     document.getElementById('fecha').value = hoyISO();
     cargarConceptosSelect();
 
