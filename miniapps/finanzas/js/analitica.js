@@ -8,20 +8,35 @@ function esAppInstalada() {
     return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 }
 
-function cargarAnalitica() {
-    if (!GOATCOUNTER_CODIGO || location.protocol === 'file:' || location.hostname === '127.0.0.1' || location.hostname === 'localhost') return;
-    // La apertura se cuenta separando app instalada de navegador
-    window.goatcounter = {
-        path: () => '/miniapps/finanzas/' + (esAppInstalada() ? 'app-instalada' : 'navegador')
-    };
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = 'https://gc.zgo.at/count.js';
-    script.dataset.goatcounter = `https://${GOATCOUNTER_CODIGO}.goatcounter.com/count`;
-    document.head.appendChild(script);
+function analiticaActiva() {
+    return !!GOATCOUNTER_CODIGO && location.protocol === 'https:' && contarEsteDispositivo();
 }
 
-// GoatCounter ignora este dispositivo si existe "skipgc" en localStorage
+// Envío directo al endpoint de GoatCounter (sin cargar count.js, que los bloqueadores suelen frenar)
+function enviarConteo(path, esEvento) {
+    if (!analiticaActiva()) return;
+    try {
+        const params = new URLSearchParams({
+            p: path,
+            t: esEvento ? path : 'Finanzas',
+            e: esEvento ? 'true' : 'false',
+            s: `${screen.width},${screen.height},${window.devicePixelRatio || 1}`,
+            b: '0',
+            rnd: Math.random().toString(36).slice(2)
+        });
+        if (!esEvento && document.referrer) params.set('r', document.referrer);
+        const url = `https://${GOATCOUNTER_CODIGO}.goatcounter.com/count?${params}`;
+        if (!(navigator.sendBeacon && navigator.sendBeacon(url))) new Image().src = url;
+    } catch (err) {
+        // Las estadísticas nunca deben interrumpir el uso de la app
+    }
+}
+
+// La apertura se cuenta separando app instalada de navegador
+function contarApertura() {
+    enviarConteo('/miniapps/finanzas/' + (esAppInstalada() ? 'app-instalada' : 'navegador'), false);
+}
+
 function contarEsteDispositivo() {
     return localStorage.getItem('skipgc') !== 't';
 }
@@ -33,18 +48,11 @@ function cambiarConteoDispositivo(contar) {
 }
 
 function contarEvento(nombre) {
-    if (!GOATCOUNTER_CODIGO || !contarEsteDispositivo()) return;
-    try {
-        if (window.goatcounter && window.goatcounter.count) {
-            window.goatcounter.count({ path: nombre, title: nombre, event: true });
-        }
-    } catch (err) {
-        // Las estadísticas nunca deben interrumpir el uso de la app
-    }
+    enviarConteo(nombre, true);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    cargarAnalitica();
+    contarApertura();
     const casilla = document.getElementById('contarDispositivo');
     if (casilla) {
         casilla.checked = contarEsteDispositivo();
