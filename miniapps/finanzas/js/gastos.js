@@ -156,6 +156,7 @@ function guardarGasto() {
         cuentaId
     });
     guardarGastos();
+    contarEvento('registro-gasto');
     if (cuentaId) localStorage.setItem('ultimaCuenta', cuentaId);
 
     document.getElementById('gastoDescripcion').value = '';

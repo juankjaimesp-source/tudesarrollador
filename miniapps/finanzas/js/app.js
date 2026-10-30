@@ -363,6 +363,7 @@ function procesarFormulario(event) {
     document.getElementById('estadoVoz').textContent = '';
     limpiarMarcas();
 
+    contarEvento(concepto.tipo === 'pago' ? 'registro-abono' : 'registro-prestamo');
     const tipoLabel = concepto.tipo === 'pago' ? 'Pago' : 'Gasto';
     const interesLabel = tasaMensual ? ` al ${tasaMensual}% mensual` : '';
     toast(`${tipoLabel} registrado\n${nombre}: ${formatearMoneda(valor)}${interesLabel}\nConcepto: ${concepto.nombre}`);
@@ -1041,6 +1042,7 @@ function confirmarPagoItem() {
     transacciones.push(nuevoPago);
     guardarDatos();
     actualizarNombres();
+    contarEvento('registro-abono');
 
     const restante = saldo - valor;
     cerrarModalPago();
@@ -1106,6 +1108,7 @@ function iniciarDictado() {
         btn.setAttribute('aria-label', 'Detener dictado');
         campo.value = '';
         estadoVoz('Escuchando… toca de nuevo para terminar');
+        contarEvento('dictado');
     };
 
     reconocimiento.onresult = (e) => {

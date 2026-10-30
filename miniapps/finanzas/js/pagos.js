@@ -204,6 +204,7 @@ function confirmarPagoCompromiso() {
     pagosMes.push({ id: Date.now(), compromisoId: c.id, periodo, valor, fechaPago, comentario, cuentaId });
     if (cuentaId) localStorage.setItem('ultimaCuenta', cuentaId);
     guardarPagosMes();
+    contarEvento('pago-mes');
     cerrarPagoCompromiso();
     document.getElementById('fraseRapida').value = '';
     ajustarAlturaFrase(document.getElementById('fraseRapida'));
